@@ -1,0 +1,27 @@
+# 构建输出目录
+/dist
+
+# node_modules目录
+/node_modules
+
+# 编译过程中的临时文件
+*.log
+npm-debug.log*
+
+# 本地配置文件
+.env.local
+.env.*.local
+
+# 打包输出的.map文件
+*.map
+
+# 测试文件和目录
+/tests
+/coverage
+
+# 工程化工具配置文件和目录
+*.sublime-workspace
+*.swp
+*.swo
+.idea/
+.vscode/
