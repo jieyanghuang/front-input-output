@@ -24,6 +24,9 @@ const rules = {
         { type: 'number', message: '只能输入数字' },
         { pattern: /^\d{1,6}$/, message: '长度不能超过六位数', trigger: 'blur' }
     ],
+    method: [
+        { required: true, message: '请选择迭代方法', trigger: 'blur' },
+    ]
 
 }
 

@@ -31,6 +31,20 @@
           <el-form-item label="迭代次数" prop="maxiter">
             <el-input v-model.number="formLabelAlign.maxiter"></el-input>
           </el-form-item>
+          <el-form-item label="迭代方法" prop="method">
+            <el-select
+              v-model="formLabelAlign.method"
+              placeholder="请选择"
+              class="form_select"
+            >
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="submitForm()">立即创建</el-button>
             <el-button @click="resetForm()">重置</el-button>
@@ -56,28 +70,44 @@ export default {
     return {
       formLabelAlign: {
         top: 0,
-        bottom: 0,
+        bottom: 100,
         left: 0,
         right: 0,
         maxiter: 100,
+        method: "SOR",
       },
       loading: false,
       data: [],
       max: 100,
       rules: rules,
+      responseTimeMs: 0,
+      options: [
+        {
+          value: "SOR",
+          label: "逐次超松弛迭代法(SOR)",
+        },
+        {
+          value: "Jacobi",
+          label: "雅克比迭代法(Jacobi)",
+        },
+      ],
     };
   },
   methods: {
     getData() {
       this.loading = true;
+      const startTime = window.performance.now(); // 记录请求开始时间
       this.$axios
         .post("http://127.0.0.1:5000/heatmap", this.formLabelAlign)
         .then((re) => {
+          const endTime = window.performance.now(); // 记录请求结束时间
+          const responseTime = endTime - startTime; // 计算响应时间
+          this.responseTimeMs = responseTime.toFixed(2);
           this.data = re.data.data;
           console.log(this.data);
           this.loading = false;
           /* eslint-disable-next-line*/
-          const { maxiter, ...formLabelCopy } = this.formLabelAlign;
+          const { maxiter, method, ...formLabelCopy } = this.formLabelAlign;
           this.max = Math.max(...Object.values(formLabelCopy));
           this.init();
         })
@@ -96,8 +126,14 @@ export default {
       }
       console.log(this.data);
       var myChart = this.$echarts.init(document.getElementById("myChart"));
+      /** @type EChartsOption */
       var option = {
-        tooltip: {},
+        tooltip: {
+          formatter: function (p) {
+            console.log(p);
+            return `x:${p.data[0] / 100} y:${p.data[1] / 100} val:${p.data[2]}`;
+          },
+        },
         xAxis: {
           type: "category",
           data: xData,
@@ -140,9 +176,9 @@ export default {
         ],
       };
       myChart.setOption(option);
-      // window.addEventListener("resize", function () {
-      //   myChart.resize();
-      // });
+      window.addEventListener("resize", function () {
+        myChart.resize();
+      });
     },
     submitForm() {
       console.log(this.rules);
@@ -157,10 +193,11 @@ export default {
     resetForm() {
       this.formLabelAlign = {
         top: 0,
-        bottom: 0,
+        bottom: 100,
         left: 0,
         right: 0,
         maxiter: 100,
+        method: "SOR",
       };
     },
   },
@@ -168,7 +205,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
 .main .content {
   height: 100%;
   display: flex;
@@ -185,5 +222,8 @@ export default {
   text-align: left;
   line-height: 0px;
   margin: 10px 10px;
+  &_select {
+    width: 480px;
+  }
 }
 </style>
